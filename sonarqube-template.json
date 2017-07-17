@@ -659,7 +659,7 @@
       "name": "SONAR_CONTAINER_BRANCH",
       "displayName": "SonarQube Container Branch",
       "description": "Branch from which to build the SonarQube container (https://github.com/rht-labs/openshift-sonarqube)",
-      "value": "include-postgresql"
+      "value": "master"
     },
     {
       "name": "MEMORY_LIMIT",
