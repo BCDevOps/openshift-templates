@@ -14,7 +14,7 @@
       },
       "spec": {
         "accessModes": [
-          "ReadWriteMany"
+          "ReadWriteOnce"
         ],
         "resources": {
           "requests": {
@@ -39,7 +39,8 @@
       "kind": "Service",
       "metadata": {
         "creationTimestamp": null,
-        "name": "${DATABASE_SERVICE_NAME}"
+        "name": "${DATABASE_SERVICE_NAME}",
+        "appName": "sonarqube"
       },
       "spec": {
         "ports": [
@@ -65,11 +66,12 @@
       "apiVersion": "v1",
       "kind": "PersistentVolumeClaim",
       "metadata": {
-        "name": "${DATABASE_SERVICE_NAME}"
+        "name": "${DATABASE_SERVICE_NAME}",
+        "appName": "sonarqube"
       },
       "spec": {
         "accessModes": [
-          "ReadWriteMany"
+          "ReadWriteOnce"
         ],
         "resources": {
           "requests": {
@@ -593,6 +595,10 @@
                   {
                     "mountPath": "/opt/sonarqube/data",
                     "name": "openshift-sonarqube"
+                  },
+                  {
+                    "mountPath": "/opt/sonarqube/conf/etl",
+                    "name": "volume-hlm0h"
                   }
                 ]
               }
@@ -606,6 +612,20 @@
                 "name": "openshift-sonarqube",
                 "persistentVolumeClaim": {
                   "claimName": "openshift-sonarqube"
+                }
+              },
+              {
+                "name": "etl-trust-store",
+                "secret": {
+                  "defaultMode": 420,
+                  "secretName": "etl-trust-store"
+                }
+              },
+              {
+                "name": "volume-hlm0h",
+                "secret": {
+                  "defaultMode": 420,
+                  "secretName": "etl-keystore"
                 }
               }
             ]
@@ -639,10 +659,10 @@
       "name": "SONAR_CONTAINER_BRANCH",
       "displayName": "SonarQube Container Branch",
       "description": "Branch from which to build the SonarQube container (https://github.com/rht-labs/openshift-sonarqube)",
-      "value": "master"
+      "value": "include-postgresql"
     },
     {
-      "name": "PSQL_MEMORY_LIMIT",
+      "name": "MEMORY_LIMIT",
       "displayName": "Memory Limit",
       "description": "Maximum amount of memory for the PostgreSQL database",
       "value": "512Mi",
@@ -685,7 +705,7 @@
       "required": true
     },
     {
-      "name": "PSQL_VOLUME_CAPACITY",
+      "name": "VOLUME_CAPACITY",
       "displayName": "Volume Capacity",
       "description": "Volume space available for data, e.g. 512Mi, 2Gi.",
       "value": "5Gi",
