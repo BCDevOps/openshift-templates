@@ -772,8 +772,8 @@
     },
     {
       "name": "SONARQUBE_LDAP_REALM",
-      "displayName": "LDAP realm",
-      "description": "A realm defines the namespace from which the authentication entity (the value of the Context.SECURITY_PRINCIPAL property) is selected. (See: http://docs.oracle.com/javase/jndi/tutorial/ldap/security/digest.html)"
+      "displayName": "Security Realm",
+      "description": "Leave blank if you are not using LDAP for authentication. Otherwise, set this to 'LDAP'"
     },
     {
       "name": "SONARQUBE_LDAP_CONTEXTFACTORY",
