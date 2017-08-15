@@ -1,0 +1,315 @@
+{
+  "kind": "Template",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "owasp-zap",
+    "creationTimestamp": null
+  },
+  "objects": [
+    {
+      "apiVersion": "v1",
+      "kind": "Route",
+      "metadata": {
+        "annotations": {
+          "openshift.io/host.generated": "true"
+        },
+        "creationTimestamp": null,
+        "labels": {
+          "appName": "owasp-zap"
+        },
+        "name": "openshift-owasp-zap"
+      },
+      "spec": {
+        "port": {
+          "targetPort": "8080-tcp"
+        },
+        "to": {
+          "kind": "Service",
+          "name": "owasp-zap",
+          "weight": 100
+        },
+        "wildcardPolicy": "None"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ImageStream",
+      "metadata": {
+        "annotations": {
+          "openshift.io/generated-by": "OpenShiftNewApp"
+        },
+        "creationTimestamp": null,
+        "generation": 1,
+        "labels": {
+          "app": "openshift-owasp-zap",
+          "appName": "owasp-zap"
+        },
+        "name": "openshift-owasp-zap"
+      },
+      "spec": {
+        "tags": [
+          {
+            "annotations": null,
+            "from": {
+              "kind": "DockerImage",
+              "name": "openshift-owasp-zap:latest"
+            },
+            "generation": null,
+            "importPolicy": {},
+            "name": "latest",
+            "referencePolicy": {
+              "type": ""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "creationTimestamp": null,
+        "annotations": {
+          "service.alpha.openshift.io/dependencies": "[{\"name\":\"postgresql\",\"namespace\":\"\",\"kind\":\"Service\"}]"
+        },
+        "labels": {
+          "app": "openshift-owasp-zap",
+          "appName": "owasp-zap"
+        },
+        "name": "openshift-owasp-zap"
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "8080-tcp",
+            "port": 8080,
+            "protocol": "TCP",
+            "targetPort": 8080
+          }
+        ],
+        "selector": {
+          "app": "openshift-owasp-zap",
+          "deploymentconfig": "openshift-owasp-zap"
+        },
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ImageStream",
+      "metadata": {
+        "annotations": null,
+        "creationTimestamp": null,
+        "generation": 2,
+        "labels": {
+          "app": "fedora",
+          "appName": "fedora"
+        },
+        "name": "fedora"
+      },
+      "spec": {
+        "tags": [
+          {
+            "annotations": {
+              "openshift.io/generated-by": "OpenShiftWebConsole",
+              "openshift.io/imported-from": "fedora:latest"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "fedora:latest"
+            },
+            "generation": 2,
+            "importPolicy": {},
+            "name": "latest",
+            "referencePolicy": {
+              "type": "Source"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "BuildConfig",
+      "metadata": {
+        "annotations": {
+          "openshift.io/generated-by": "OpenShiftNewApp"
+        },
+        "creationTimestamp": null,
+        "labels": {
+          "app": "openshift-owasp-zap",
+          "appName": "owasp-zap"
+        },
+        "name": "openshift-owasp-zap"
+      },
+      "spec": {
+        "nodeSelector": null,
+        "output": {
+          "to": {
+            "kind": "ImageStreamTag",
+            "name": "openshift-owasp-zap:latest"
+          }
+        },
+        "postCommit": {},
+        "resources": {},
+        "runPolicy": "Serial",
+        "source": {
+          "git": {
+            "uri": "https://github.com/InfoSec812/owasp-zap-openshift.git",
+            "ref": "master"
+          },
+          "type": "Git"
+        },
+        "strategy": {
+          "dockerStrategy": {
+            "from": {
+              "kind": "ImageStreamTag",
+              "name": "fedora:latest"
+            },
+            "noCache": false
+          },
+          "type": "Docker"
+        },
+        "triggers": [
+          {
+            "type": "ConfigChange"
+          },
+          {
+            "imageChange": {},
+            "type": "ImageChange"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "DeploymentConfig",
+      "metadata": {
+        "labels": {
+          "app": "openshift-owasp-zap",
+          "appName": "owasp-zap",
+          "name": "openshift-owasp-zap"
+        },
+        "name": "openshift-owasp-zap"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "app": "openshift-owasp-zap",
+          "deploymentconfig": "openshift-owasp-zap"
+        },
+        "strategy": {
+          "activeDeadlineSeconds": 21600,
+          "resources": {},
+          "rollingParams": {
+            "intervalSeconds": 1,
+            "maxSurge": "25%",
+            "maxUnavailable": "25%",
+            "timeoutSeconds": 600,
+            "updatePeriodSeconds": 1
+          },
+          "type": "Rolling"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "openshift-owasp-zap",
+              "deploymentconfig": "openshift-owasp-zap"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                
+                "imagePullPolicy": "Always",
+                "livenessProbe": {
+                  "failureThreshold": 5,
+                  "exec": {
+                    "command": [
+                      "zap-cli",
+                      "status"
+                    ]
+                  },
+                  "initialDelaySeconds": 60,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "timeoutSeconds": 10
+                },
+                "readinessProbe": {
+                  "failureThreshold": 5,
+                  "initialDelaySeconds": 60,
+                  "exec": {
+                    "command": [
+                      "zap-cli",
+                      "status"
+                    ]
+                  },
+                  "timeoutSeconds": 20
+                },
+                "name": "openshift-owasp-zap",
+                "ports": [
+                  {
+                    "containerPort": 8080,
+                    "protocol": "TCP"
+                  }
+                ],
+                "resources": {
+                  "limits": {
+                    "cpu": "${ZAP_CPU_LIMIT}",
+                    "memory": "${ZAP_MEMORY_LIMIT}"
+                  },
+                  "requests": {
+                    "cpu": "500m",
+                    "memory": "1Gi"
+                  }
+                },
+                "image": "openshift-owasp-zap:latest",
+                "terminationMessagePath": "/dev/termination-log"
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "restartPolicy": "Always",
+            "securityContext": {},
+            "terminationGracePeriodSeconds": 30
+          }
+        },
+        "test": false,
+        "triggers": [
+          {
+            "type": "ConfigChange"
+          },
+          {
+            "type": "ImageChange",
+            "imageChangeParams": {
+              "automatic": true,
+              "containerNames": [
+                "openshift-owasp-zap"
+              ],
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "openshift-owasp-zap:latest"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "name": "ZAP_CPU_LIMIT",
+      "displayName": "Zed Attack Proxy CPU limit",
+      "description": "Number of virtual CPUs to allocate for ZAP",
+      "value": "2",
+      "required": true
+    },
+    {
+      "name": "ZAP_MEMORY_LIMIT",
+      "displayName": "Zed Attack Proxy Memory Limit",
+      "description": "The maximum amount of memory that the ZAP service is allowed to use (Min is 512Mi)",
+      "value": "2Gi",
+      "required": true
+    }
+  ]
+}

@@ -128,6 +128,10 @@
                   {
                     "name": "POSTGRESQL_DATABASE",
                     "value": "${POSTGRESQL_DATABASE}"
+                  },
+                  {
+                    "name": "CA_CERT_URL",
+                    "value": "${CA_CERT_URL}"
                   }
                 ],
                 "image": " ",
@@ -595,10 +599,6 @@
                   {
                     "mountPath": "/opt/sonarqube/data",
                     "name": "openshift-sonarqube"
-                  },
-                  {
-                    "mountPath": "/opt/sonarqube/conf/etl",
-                    "name": "volume-hlm0h"
                   }
                 ]
               }
@@ -612,20 +612,6 @@
                 "name": "openshift-sonarqube",
                 "persistentVolumeClaim": {
                   "claimName": "openshift-sonarqube"
-                }
-              },
-              {
-                "name": "etl-trust-store",
-                "secret": {
-                  "defaultMode": 420,
-                  "secretName": "etl-trust-store"
-                }
-              },
-              {
-                "name": "volume-hlm0h",
-                "secret": {
-                  "defaultMode": 420,
-                  "secretName": "etl-keystore"
                 }
               }
             ]
@@ -757,7 +743,7 @@
     },
     {
       "name": "SONARQUBE_LDAP_BINDDN",
-      "displayName": "LDPA bind Distinguished Name",
+      "displayName": "LDAP bind Distinguished Name",
       "description": "Bind DN for LDAP authentication (leave blank for local authentication)"
     },
     {
@@ -856,6 +842,12 @@
       "displayName": "Disable Build Breaker plugin",
       "description": "Build Breaker plugin - Disable the build breaker plugin for all builds",
       "value": "true"
+    },
+    {
+      "name": "CA_CERT_URL",
+      "displayName": "CA Certificate URL",
+      "description": "If a non-standard certificate authority root is needed to validate SSL for SonarQube interactions, place a URL from which the CA certificate can be downloaded here.",
+      "value": ""
     },
     {
       "name": "GITHUB_SECRET",
