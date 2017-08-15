@@ -41,8 +41,7 @@
                     "dockerStrategy": {
                         "from": {
                             "kind": "ImageStreamTag",
-                            "name": "${BUILDER_IMAGE_NAME}",
-			    "namespace": "${BUILDER_IMAGE_NAMESPACE}"
+                            "name": "${BUILDER_IMAGE_NAME}"
                         }
                     },
                     "type": "Docker"
@@ -139,12 +138,6 @@
 	    "displayName": "Image name from which to build this pod",
 	    "description": "The build image which this build pod will extend to create it's new build pod type.",
 	    "value": "jenkins-slave-base-rhel7"
-	},
-	{
-	    "name": "BUILDER_IMAGE_NAMESPACE",
-	    "displayName": "Namespace from which to pull the base image",
-	    "description": "Namespace in which to find the image stream which will be used for the base",
-	    "value": "registry.access.redhat.com/openshift3"
 	}
     ],
     "labels": {
