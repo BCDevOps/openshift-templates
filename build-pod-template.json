@@ -41,7 +41,7 @@
                     "dockerStrategy": {
                         "from": {
                             "kind": "DockerImage",
-                            "name": "registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7:latest"
+                            "name": "${BUILDER_IMAGE_NAME}"
                         }
                     },
                     "type": "Docker"
