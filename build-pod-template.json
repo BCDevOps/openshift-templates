@@ -41,7 +41,7 @@
                     "dockerStrategy": {
                         "from": {
                             "kind": "ImageStreamTag",
-                            "name": "${BUILDER_IMAGE_NAME}"
+                            "name": "registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7:latest"
                         }
                     },
                     "type": "Docker"
@@ -80,14 +80,14 @@
                 "labels": {
                     "build": "${NAME}"
                 },
-                "name": "jenkins-slave-maven-centos7"
+                "name": "jenkins-slave-${NAME}-rhel7"
             },
             "spec": {
                 "tags": [
                     {
                         "from": {
                             "kind": "DockerImage",
-                            "name": "openshift/jenkins-slave-maven-centos7:latest"
+                            "name": "openshift/jenkins-slave-${NAME}-rhel7:latest"
                         },
                         "generation": 2,
                         "importPolicy": {},
