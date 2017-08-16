@@ -548,20 +548,8 @@
                     "value": "${SONARQUBE_LDAP_GROUP_ID_ATTR}"
                   },
                   {
-                    "name": "SONARQUBE_BUILDBREAKER_MAX_ATTEMPTS",
-                    "value": "${SONARQUBE_BUILDBREAKER_MAX_ATTEMPTS}"
-                  },
-                  {
-                    "name": "SONARQUBE_BUILDBREAKER_INTERVAL",
-                    "value": "${SONARQUBE_BUILDBREAKER_INTERVAL}"
-                  },
-                  {
-                    "name": "SONARQUBE_BUILDBREAKER_THRESHOLD",
-                    "value": "${SONARQUBE_BUILDBREAKER_THRESHOLD}"
-                  },
-                  {
-                    "name": "SONAR_BUILDBREAKER_DISABLE",
-                    "value": "${SONAR_BUILDBREAKER_DISABLE}"
+                    "name": "CA_CERT_URL",
+                    "value": "${CA_CERT_URL}"
                   }
                 ],
                 "imagePullPolicy": "Always",
@@ -820,33 +808,9 @@
       "value": "cn"
     },
     {
-      "name": "SONARQUBE_BUILDBREAKER_MAX_ATTEMPTS",
-      "displayName": "Max BuildBreaker attempts",
-      "description": "Build Breaker plugin - Max number of poll attempts before failing to get analysis results",
-      "value": "30"
-    },
-    {
-      "name": "SONARQUBE_BUILDBREAKER_INTERVAL",
-      "displayName": "Poll Interval",
-      "description": "Build Breaker plugin - Interval to wait between poll requests to get analysis results",
-      "value": "20000"
-    },
-    {
-      "name": "SONARQUBE_BUILDBREAKER_THRESHOLD",
-      "displayName": "Failure threshold",
-      "description": "Build Breaker plugin - Threshold of an issue at which a build will instantly break regardless of all other analysis results",
-      "value": "CRITICAL"
-    },
-    {
-      "name": "SONAR_BUILDBREAKER_DISABLE",
-      "displayName": "Disable Build Breaker plugin",
-      "description": "Build Breaker plugin - Disable the build breaker plugin for all builds",
-      "value": "true"
-    },
-    {
       "name": "CA_CERT_URL",
       "displayName": "CA Certificate URL",
-      "description": "If a non-standard certificate authority root is needed to validate SSL for SonarQube interactions, place a URL from which the CA certificate can be downloaded here.",
+      "description": "Generally used so that SonarQube can communicate via SSL/TLS to an LDAP server for authentication (IdM).",
       "value": ""
     },
     {
