@@ -550,6 +550,10 @@
                   {
                     "name": "CA_CERT_URL",
                     "value": "${CA_CERT_URL}"
+                  },
+                  {
+                    "name": "EXTRA_JVM_ARGS",
+                    "value": "${EXTRA_JVM_ARGS}"
                   }
                 ],
                 "imagePullPolicy": "Always",
@@ -826,6 +830,12 @@
       "description": "Generated secret key for generic webhooks",
       "generate": "expression",
       "from": "[A-Za-z0-9]{36}"
+    },
+    {
+      "name": "EXTRA_JVM_ARGS",
+      "displayName": "Extra arguments to be passed to the JVM on start",
+      "description": "Pass in arguments like '-Djavax.net.debug=ssl' to debug issues.",
+      "required": false
     }
   ]
 }
