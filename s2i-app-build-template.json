@@ -2,12 +2,12 @@
     "kind": "Template",
     "apiVersion": "v1",
     "metadata": {
-        "name": "java-app-build",
+        "name": "s2i-app-build",
         "annotations": {
-            "openshift.io/display-name": "Java App Build Template",
-            "description": "Java S2I binary build config to create an image with your Java App baked in.",
-            "iconClass": "icon-java",
-            "tags": "java"
+            "openshift.io/display-name": "S2I App Build Template",
+            "description": "S2I binary build config to create an image with your app baked in.",
+            "iconClass": "fa-cube",
+            "tags": "s2i"
         }
     },
     "objects": [
@@ -43,12 +43,6 @@
                 },
                 "triggers": [
                     {
-                        "github": {
-                            "secret": "${PIPELINE_GITHUB_WEBHOOK_SECRET}"
-                        },
-                        "type": "GitHub"
-                    },
-                    {
                         "type": "ConfigChange"
                     }
                 ]
@@ -82,20 +76,12 @@
                     "sourceStrategy": {
                         "from": {
                             "kind": "ImageStreamTag",
-                            "name": "redhat-openjdk18-openshift:latest",
+                            "name": "${BUILDER_IMAGE}",
                             "namespace": "openshift"
                         }
                     },
                     "type": "Source"
-                },
-                "triggers": [
-                    {
-                        "github": {
-                            "secret": "${GITHUB_WEBHOOK_SECRET}"
-                        },
-                        "type": "GitHub"
-                    }
-                ]
+                }
             },
             "status": {
                 "lastVersion": 1
@@ -119,14 +105,7 @@
             "displayName": "Name",
             "description": "The name assigned to all objects and the resulting imagestream.",
             "required": true,
-            "value": "java-app"
-        },
-        {
-            "name": "GITHUB_WEBHOOK_SECRET",
-            "displayName": "GitHub Webhook Secret",
-            "description": "A secret string used to configure the GitHub webhook.",
-            "generate": "expression",
-            "from": "[a-zA-Z0-9]{40}"
+            "value": "s2i-app"
         },
         {
             "name": "PIPELINE_SOURCE_REPOSITORY_URL",
@@ -148,6 +127,6 @@
         }
     ],
     "labels": {
-        "template": "java-app-build-template"
+        "template": "s2i-app-build-template"
     }
 }
