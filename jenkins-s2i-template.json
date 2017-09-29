@@ -27,9 +27,6 @@
                     },
                     {
                         "type": "ConfigChange"
-                    },
-                    {
-                        "type": "ImageChange"
                     }
                 ],
                 "runPolicy": "Serial",
