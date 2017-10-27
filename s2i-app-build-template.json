@@ -124,7 +124,14 @@
             "name": "PIPELINE_CONTEXT_DIR",
             "displayName": "Git Context Directory for Jenkinsfile",
             "description": "Set this to the directory where the Jenkinsfile is if not using the default root directory"
+        },
+        {
+            "name": "BUILDER_IMAGE",
+            "displayName": "Builder Image",
+            "description": "Set this to the builder image you want to use",
+            "value": "redhat-openjdk18-openshift"
         }
+
     ],
     "labels": {
         "template": "s2i-app-build-template"
