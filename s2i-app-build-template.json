@@ -129,7 +129,7 @@
             "name": "BUILDER_IMAGE",
             "displayName": "Builder Image",
             "description": "Set this to the builder image you want to use",
-            "value": "redhat-openjdk18-openshift"
+            "value": "redhat-openjdk18-openshift:latest"
         }
 
     ],
