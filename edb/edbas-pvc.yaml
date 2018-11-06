@@ -15,7 +15,7 @@ objects:
         volume.beta.kubernetes.io/storage-class: gluster-file-db
     spec:
       accessModes:
-        - ReadWriteOnce
+        - ReadWriteMany
       resources:
         requests:
           storage: 2Gi
@@ -27,7 +27,7 @@ objects:
         volume.beta.kubernetes.io/storage-class: gluster-file
     spec:
       accessModes:
-        - ReadWriteOnce
+        - ReadWriteMany
       resources:
         requests:
           storage: 2Gi

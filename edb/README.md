@@ -3,7 +3,7 @@
 oc project devops-sso-sandbox
 
 #Create Secrets
-oc process -f edbas-secrets.yaml -p 'NAME=edb' | oc apply -f -
+oc process -f edbas-secrets.yaml -p 'NAME=edb' -l app=sso-pg | oc apply -f -
 
 #Create PVCs
 oc process -f edbas-pvc.yaml -p 'PERSISTENT_VOLUME_CLAIM=sso-pg-sandbox' -p 'BACKUP_VOLUME_CLAIM=sso-pg-backup-sandbox' -l app=sso-pg | oc apply -f -

@@ -257,8 +257,9 @@ objects:
         restartPolicy: Always
         serviceAccountName: ${DATABASE_NAME}
         volumes:
-        - name: edb-data-pv
-          emptyDir: {}
+        - persistentVolumeClaim:
+            claimName: ${PERSISTENT_VOLUME_CLAIM}
+          name: edb-data-pv
     triggers:
     - type: ConfigChange
     - imageChangeParams:
