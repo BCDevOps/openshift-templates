@@ -1,0 +1,427 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  annotations:
+    description: Standard EDB Postgres Advanced Server 10 Deployment Config
+    iconClass: icon-postgresql
+    tags: database,epas,postgres,postgresql
+  name: edbas-persistent
+objects:
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: ${DATABASE_NAME}
+  imagePullSecrets:
+  - name: edb-container-repo-login
+- apiVersion: v1
+  groupNames: null
+  kind: RoleBinding
+  metadata:
+    name: ${DATABASE_NAME}_admin
+  roleRef:
+    name: admin
+  subjects:
+  - kind: ServiceAccount
+    name: ${DATABASE_NAME}
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    name: edb-bart
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: containers.enterprisedb.com/edb/edb-bart:v2.0
+      importPolicy: {}
+      name: v2.0
+      referencePolicy:
+        type: Local
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    name: edb-as
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: containers.enterprisedb.com/edb/edb-as:v10
+      importPolicy: {}
+      name: v10
+      referencePolicy:
+        type: Local
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    creationTimestamp: null
+    name: edb-pgpool
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: containers.enterprisedb.com/edb/edb-pgpool:v3.5
+      importPolicy: {}
+      name: v3.5
+      referencePolicy:
+        type: Local
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      cluster: ${DATABASE_NAME}
+      role: loadbalancer
+    name: ${DATABASE_NAME}-service
+  spec:
+    ports:
+    - name: lb
+      port: ${PGPORT}
+      targetPort: 9999
+    selector:
+      lb: ${DATABASE_NAME}-pgpool
+    sessionAffinity: None
+    type: LoadBalancer
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${DATABASE_NAME}-pgpool
+  spec:
+    replicas: 2
+    selector:
+      lb: ${DATABASE_NAME}-pgpool
+    strategy:
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          cluster: ${DATABASE_NAME}
+          lb: ${DATABASE_NAME}-pgpool
+          role: queryrouter
+      spec:
+        containers:
+        - env:
+          - name: DATABASE_NAME
+            value: ${DATABASE_NAME}
+          - name: PGPORT
+            value: ${PGPORT}
+          - name: REPL_USER
+            value: ${REPL_USER}
+          - name: ENTERPRISEDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: ${DATABASE_NAME}-enterprisedb-passwd
+          - name: REPL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: ${DATABASE_NAME}-repl-user-passwd
+          - name: ACCEPT_EULA
+            value: ${ACCEPT_EULA}
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          name: edb-pgpool
+          readinessProbe:
+            exec:
+              command:
+              - /var/lib/edb/testIsReady.sh
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+        serviceAccountName: ${DATABASE_NAME}
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - edb-pgpool
+        from:
+          kind: ImageStreamTag
+          name: 'edb-pgpool:v3.5'
+      type: ImageChange
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${DATABASE_NAME}-as10
+  spec:
+    replicas: 1
+    selector:
+      db: ${DATABASE_NAME}-as10
+    strategy:
+      resources:
+        limits:
+          cpu: "1.5"
+          memory: 2Gi
+        requests:
+          cpu: "0.5"
+          memory: 1Gi
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          cluster: ${DATABASE_NAME}
+          db: ${DATABASE_NAME}-as10
+      spec:
+        containers:
+        - env:
+          - name: DATABASE_NAME
+            value: ${DATABASE_NAME}
+          - name: DATABASE_USER
+            value: ${DATABASE_USER}
+          - name: DATABASE_USER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: ${DATABASE_NAME}-database-user-passwd
+          - name: ENTERPRISEDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: ${DATABASE_NAME}-enterprisedb-passwd
+          - name: REPL_USER
+            value: ${REPL_USER}
+          - name: REPL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: ${DATABASE_NAME}-repl-user-passwd
+          - name: PGPORT
+            value: ${PGPORT}
+          - name: RESTORE_FILE
+            value: ${RESTORE_FILE}
+          - name: LOCALEPARAMETER
+            value: ${LOCALEPARAMETER}
+          - name: CLEANUP_SCHEDULE
+            value: ${CLEANUP_SCHEDULE}
+          - name: EFM_EMAIL
+            value: ${EFM_EMAIL}
+          - name: NAMESERVER
+            value: ${NAMESERVER}
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_NODE
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: ACCEPT_EULA
+            value: ${ACCEPT_EULA}
+          image: ' '
+          imagePullPolicy: Always
+#          livenessProbe:
+#            exec:
+#              command:
+#              - /var/lib/edb/testIsHealthy.sh
+#            initialDelaySeconds: 600
+#            timeoutSeconds: 60
+          name: edb-as10
+          ports:
+          - containerPort: ${PGPORT}
+#          readinessProbe:
+#            exec:
+#              command:
+#              - /var/lib/edb/testIsReady.sh
+#            initialDelaySeconds: 60
+#            timeoutSeconds: 5
+          volumeMounts:
+          - mountPath: /edbvolume
+            name: edb-data-pv
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        serviceAccountName: ${DATABASE_NAME}
+        volumes:
+        - name: edb-data-pv
+          emptyDir: {}
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - edb-as10
+        from:
+          kind: ImageStreamTag
+          name: 'edb-as:v10'
+      type: ImageChange
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${DATABASE_NAME}-bart
+  spec:
+    replicas: 1
+    selector:
+      name: ${DATABASE_NAME}-bart
+    strategy:
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          cluster: ${DATABASE_NAME}
+          name: ${DATABASE_NAME}-bart
+          role: backuptool
+      spec:
+        containers:
+        - env:
+          - name: BART_HOST_ADDRESS
+            value: ${BART_HOST_ADDRESS}
+          - name: PGHOST
+            value: ${DATABASE_NAME}-service
+          - name: PGPORT
+            value: ${PGPORT}
+          - name: DATABASE_NAME
+            value: ${DATABASE_NAME}
+          - name: REPL_USER
+            value: ${REPL_USER}
+          - name: REPL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: ${DATABASE_NAME}-repl-user-passwd
+          - name: BART_AUTOMATE_BACKUP
+            value: ${BART_AUTOMATE_BACKUP}
+          - name: BART_BACKUP_SCHEDULE
+            value: ${BART_BACKUP_SCHEDULE}
+          - name: BART_NUM_BACKUPS_TO_KEEP
+            value: ${BART_NUM_BACKUPS_TO_KEEP}
+          - name: BART_COMPRESS_BACKUP
+            value: ${BART_COMPRESS_BACKUP}
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: ACCEPT_EULA
+            value: ${ACCEPT_EULA}
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          name: edb-bart
+          volumeMounts:
+          - mountPath: /edbbackup
+            name: edb-backup-pv
+        serviceAccountName: ${DATABASE_NAME}
+        volumes:
+        - name: edb-backup-pv
+          persistentVolumeClaim:
+            claimName: ${BACKUP_VOLUME_CLAIM}
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - edb-bart
+        from:
+          kind: ImageStreamTag
+          name: 'edb-bart:v2.0'
+      type: ImageChange
+parameters:
+- description: Name of Postgres database (leave edb for default)
+  displayName: Database Name
+  name: DATABASE_NAME
+  value: edb
+- description: Default database user
+  displayName: Default database user (leave enterprisedb for default)
+  name: DATABASE_USER
+  value: enterprisedb
+- description: repl database user
+  displayName: Repl user
+  name: REPL_USER
+  value: repl
+- description: Database Port (leave 5444 for default)
+  displayName: Database Port
+  name: PGPORT
+  value: "5444"
+- description: Locale of database
+  displayName: Locale
+  name: LOCALEPARAMETER
+  value: en_US.UTF-8
+- description: Standard cron schedule - min (0 - 59), hour (0 - 23), day of month
+    (1 - 31), month (1 - 12), day of week (0 - 6) (0 to 6 are Sunday to Saturday,
+    or use names; 7 is Sunday, the same as 0). Leave it empty if you dont want to
+    cleanup.
+  displayName: Host Cleanup Schedule
+  name: CLEANUP_SCHEDULE
+  value: 0:0:*:*:*
+- description: Email for EFM
+  displayName: Email
+  name: EFM_EMAIL
+  value: none@none.com
+- description: Name Server for Email
+  displayName: Name Server for Email
+  name: NAMESERVER
+  value: 8.8.8.8
+- description: Persistent volume claim name
+  displayName: Persistent Volume Claim
+  name: PERSISTENT_VOLUME_CLAIM
+  required: true
+  value: edb-data-pvc
+- description: Backup volume claim name
+  displayName: Backup Volume Claim
+  name: BACKUP_VOLUME_CLAIM
+  value: edb-backup-pvc
+- description: BART host address (leave localhost for default)
+  displayName: BART Host Address
+  name: BART_HOST_ADDRESS
+  required: true
+  value: localhost
+- description: Indicates whether backups should be done automatically
+  displayName: Automate backup operation (leave 'Yes' for default)
+  name: BART_AUTOMATE_BACKUP
+  required: true
+  value: "Yes"
+- description: Standard cron schedule - min (0 - 59), hour (0 - 23), day of month
+    (1 - 31), month (1 - 12), day of week (0 - 6) (0 to 6 are Sunday to Saturday,
+    or use names; 7 is Sunday, the same as 0)
+  displayName: BART Backup Schedule
+  name: BART_BACKUP_SCHEDULE
+  required: true
+  value: 0:0:*:*:*
+- description: How many backups to keep, older backups will be removed as newer backups
+    are added
+  displayName: BART Number of Backups to Keep
+  name: BART_NUM_BACKUPS_TO_KEEP
+  required: true
+  value: "2"
+- description: Indicates whether backup files should be compressed
+  displayName: Compress backup files (leave 'Yes' for default)
+  name: BART_COMPRESS_BACKUP
+  value: "Yes"
+- description: Restore file location
+  displayName: Restore File
+  name: RESTORE_FILE
+- description: Indicates whether user accepts the end-user license agreement
+  displayName: Accept end-user license agreement (leave 'Yes' for default)
+  name: ACCEPT_EULA
+  required: true
+  value: "Yes"

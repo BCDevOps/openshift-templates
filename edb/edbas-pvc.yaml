@@ -1,0 +1,43 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  annotations:
+    description: Standard EDB Postgres Advanced Server 10 Deployment Config
+    iconClass: icon-postgresql
+    tags: database,epas,postgres,postgresql
+  name: edbas-persistent
+objects:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${PERSISTENT_VOLUME_CLAIM}
+      annotations:
+        volume.beta.kubernetes.io/storage-class: gluster-file-db
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${BACKUP_VOLUME_CLAIM}
+      annotations:
+        volume.beta.kubernetes.io/storage-class: gluster-file
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+parameters:
+- description: Persistent volume claim name
+  displayName: Persistent Volume Claim
+  name: PERSISTENT_VOLUME_CLAIM
+  required: true
+  value: edb-data-pvc
+- description: Backup volume claim name
+  displayName: Backup Volume Claim
+  name: BACKUP_VOLUME_CLAIM
+  value: edb-backup-pvc
